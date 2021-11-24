@@ -1,9 +1,17 @@
+"""
+The Eye Consumer Affairs Test Project
+
+11/24/2021
+Jay Zhong (jialzhong@gmail.com) 
+"""
+
 import urllib, json
 import logging
 
 from datetime import datetime
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.db import transaction
+from django.core import serializers
 
 from .models import Event
 from .validation_lookups import VALID_PAYLOAD_URLS, VALID_CATEGORIES
@@ -39,10 +47,28 @@ def update_eye_data(request, payload_site_slug):
         logger.error(ex)
 
 
-async def get_event_info(request):
-    pass
+async def get_event_info(request, session_id, category, start_time, end_time):
+    """Gets a JSON list of Event objects"""
+    if not request.user.is_authenticated: # Assume there's a way to authenticate the requestor
+        return HttpResponse(status=500)
 
+    # I'm assuming that the requestor strings are all valid
+    start_time = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S') if start_time else None
+    end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S') if end_time else None
 
+    kwargs = {}
+    if session_id:
+        kwargs['session_id'] = session_id
+    if category:
+        kwargs['category'] = category
+    if start_time:
+        kwargs['timestamp__gte'] = start_time
+    if end_time:
+        kwargs['timestamp__lte'] = end_time
+    
+    events = Event.objects.filter(**kwargs) if kwargs else {} # Possibly wrong, but this prevents giving all the Events if no filters are provided
+
+    return JsonResponse(serializers.serialize('json', events if events else {}))
 
 def check_event_error(event):
     """Check if the event has errors a returns a dict as a report"""
