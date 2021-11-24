@@ -1,0 +1,1 @@
+VALID_PAYLOAD_URLS = {'application_slug': "https://www.someapp/payload_service"} # The applications that will call the eye to send its payload 
