@@ -40,7 +40,8 @@ def update_eye_data(request, payload_site_slug):
                     error_list.append(errors)
                 events.append(Event(session_id=event['session_id'], category=event['category'], name=event['name'], data=event['data'], timestamp=event['timestamp'], has_errors=len(error_list) > 0))
             Event.objects.bulk_create(events)
-            logger.warning('Event errors found: %s' % error_list)
+            if error_list:
+                logger.warning('Event errors found: %s' % error_list)
 
         return HttpResponse("Updated")
     except Exception as ex:
