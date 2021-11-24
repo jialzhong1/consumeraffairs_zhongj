@@ -1,11 +1,12 @@
 import urllib, json
 import logging
 
+from datetime import datetime
 from django.http import HttpResponse
 from django.db import transaction
 
 from .models import Event
-from .valid_payload_urls import VALID_PAYLOAD_URLS
+from .validation_lookups import VALID_PAYLOAD_URLS, VALID_CATEGORIES
 
 
 logger = logging.getLogger('logger_name')
@@ -38,7 +39,9 @@ def update_eye_data(request, payload_site_slug):
         data = json.loads(response.read())  # Assuming the data is a JSON list of Events
 
         with transaction.atomic():
-            pass
+            events = []
+            for event in data:
+                events.append
 
         return HttpResponse("Updated")
     except Exception as ex:
@@ -48,3 +51,35 @@ def update_eye_data(request, payload_site_slug):
 
 async def get_event_info(request):
     pass
+
+
+
+def check_event_error(event):
+    """Check if the event has errors a returns a dict as a report"""
+
+    errors = {}
+    category = event.get('category', None)
+    name = event.get('name', None)
+    time = event.get('timestamp', None)
+
+    now = datetime.now()
+
+    if not name:
+        errors['name'] = 'None'
+    if not time:
+        errors['timestamp'] = 'None'
+
+    if not category:
+        errors['category'] = 'None'
+    elif not VALID_CATEGORIES.get(category, None):
+        errors['category'] = 'No such category'
+    elif name and name not in VALID_CATEGORIES[category]['valid_names']:
+        errors['name'] = 'Invalid name in category'
+    
+    if time and datetime.strptime(time, '%Y-%m-%d %H:%M:%S.%f') > datetime.now():
+        errors['timestamp'] = 'Invalid time'
+
+    if errors:
+        errors['event'] = event
+    
+    return errors
