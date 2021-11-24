@@ -1,18 +1,10 @@
 from django.db import models
 
 class Event(models.Model):
-    pass
-# {
-#   "session_id": "e2085be5-9137-4e4e-80b5-f1ffddc25423",
-#   "category": "form interaction",
-#   "name": "submit",
-#   "data": {
-#     "host": "www.consumeraffairs.com",
-#     "path": "/",
-#     "form": {
-#       "first_name": "John",
-#       "last_name": "Doe"
-#     }
-#   },
-#   "timestamp": "2021-01-01 09:15:27.243860"
-# }
+
+    session_id = models.CharField(max_length = 100, default=None)
+    category = models.CharField(max_length = 50, default=None)
+    name = models.CharField(max_length = 50, default=None)
+    data = models.JSONField(default=dict)
+    timestamp = models.DateField()
+    has_errors = models.BooleanField(default=False) # Added this field to better filter for errors if needed
